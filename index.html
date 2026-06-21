@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#050505">
+    <title>Nexus Cloud | Sync App</title>
+    <link rel="manifest" href="manifest.json">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #050505;
+            --card-glass: rgba(20, 20, 25, 0.6);
+            --accent-glow: #8b5cf6;
+            --accent-cyan: #06b6d4;
+            --text-main: #ffffff;
+            --text-dim: #a1a1aa;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(139, 92, 246, 0.15), transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(6, 182, 212, 0.15), transparent 25%);
+            overflow-x: hidden;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 420px;
+            padding: 20px;
+            z-index: 10;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #c4b5fd, #8b5cf6, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header p {
+            color: var(--text-dim);
+            font-size: 14px;
+            margin-top: 5px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .glass-panel {
+            background: var(--card-glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            padding: 30px 20px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Status Orb Animation */
+        .orb-container {
+            position: relative;
+            width: 140px;
+            height: 140px;
+            margin: 0 auto 25px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .orb {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            transition: all 0.5s ease;
+            position: absolute;
+        }
+
+        .orb.active {
+            border-color: var(--accent-glow);
+            border-style: solid;
+            box-shadow: 0 0 40px rgba(139, 92, 246, 0.4), inset 0 0 20px rgba(139, 92, 246, 0.4);
+            animation: pulse 2s infinite alternate;
+        }
+
+        .orb-core {
+            font-size: 48px;
+            z-index: 2;
+            transition: transform 0.3s ease;
+        }
+
+        .active .orb-core {
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(0.95); box-shadow: 0 0 20px rgba(139, 92, 246, 0.2); }
+            100% { transform: scale(1.05); box-shadow: 0 0 50px rgba(139, 92, 246, 0.6); }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .status-text {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--text-main);
+        }
+
+        .sub-status {
+            font-size: 13px;
+            color: var(--text-dim);
+            margin-bottom: 25px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-box {
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 16px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .stat-value {
+            font-family: 'Fira Code', monospace;
+            font-size: 24px;
+            font-weight: 600;
+            color: var(--accent-cyan);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 5px;
+        }
+
+        /* Action Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            border: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-sync {
+            background: linear-gradient(135deg, var(--accent-glow), #6d28d9);
+            color: white;
+            box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+            margin-bottom: 15px;
+        }
+
+        .btn-sync:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px rgba(139, 92, 246, 0.4);
+        }
+
+        .btn-sync.stop {
+            background: linear-gradient(135deg, var(--danger), #b91c1c);
+            box-shadow: 0 10px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .file-input {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+            z-index: 10;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+        }
+
+        .btn-outline:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Terminal Console */
+        .terminal {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 16px;
+            padding: 15px;
+            margin-top: 20px;
+            height: 120px;
+            overflow-y: auto;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            text-align: left;
+            line-height: 1.5;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .terminal p { margin-bottom: 4px; }
+        .log-sys { color: var(--text-dim); }
+        .log-success { color: var(--success); }
+        .log-warn { color: #fbbf24; }
+        .log-error { color: var(--danger); }
+        
+        /* Custom Scrollbar */
+        .terminal::-webkit-scrollbar { width: 4px; }
+        .terminal::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 4px; }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <div class="header">
+            <h1>Nexus Sync</h1>
+            <p>Boss Secure Network</p>
+        </div>
+
+        <div class="glass-panel">
+            <div class="orb-container">
+                <div class="orb" id="syncOrb"></div>
+                <div class="orb-core" id="orbCore">🛰️</div>
+            </div>
+
+            <div class="status-text" id="statusMain">System Idle</div>
+            <div class="sub-status" id="statusSub">Awaiting command to bridge da-ta</div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value" id="countScanned">0</div>
+                    <div class="stat-label">Files Scanned</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="countUploaded" style="color: var(--accent-glow);">0</div>
+                    <div class="stat-label">Safely Synced</div>
+                </div>
+            </div>
+
+            <button class="btn btn-sync" id="btnToggle" onclick="toggleSystem()">
+                <span id="btnIcon">⚡</span>
+                <span id="btnText">Initialize Auto-Sync</span>
+            </button>
+
+            <div class="file-input-wrapper">
+                <input type="file" class="file-input" id="gallerySelector" webkitdirectory directory multiple onchange="handleFolderSelect(event)">
+                <button class="btn btn-outline">
+                    📁 Select Local Gallery Folder
+                </button>
+            </div>
+            
+            <div class="terminal" id="consoleLogs">
+                <p class="log-sys">> System initialized.</p>
+                <p class="log-sys">> PWA background worker ready.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // System Variables
+        let isRunning = false;
+        let scannedFiles = 0;
+        let uploadedFiles = 0;
+        let fileQueue = [];
+        let engineInterval;
+
+        const elOrb = document.getElementById('syncOrb');
+        const elCore = document.getElementById('orbCore');
+        const elMainStatus = document.getElementById('statusMain');
+        const elSubStatus = document.getElementById('statusSub');
+        const elBtnToggle = document.getElementById('btnToggle');
+        const elBtnText = document.getElementById('btnText');
+        const elConsole = document.getElementById('consoleLogs');
+
+        // Terminal Logger
+        function logData(msg, type = 'sys') {
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            let colorClass = 'log-sys';
+            if(type === 'success') colorClass = 'log-success';
+            if(type === 'warn') colorClass = 'log-warn';
+            if(type === 'error') colorClass = 'log-error';
+            
+            elConsole.innerHTML += `<p class="${colorClass}">[${time}] ${msg}</p>`;
+            elConsole.scrollTop = elConsole.scrollHeight;
+        }
+
+        // Folder Selection Handler
+        function handleFolderSelect(event) {
+            const files = event.target.files;
+            if(files.length > 0) {
+                logData(`Folder linked. Found ${files.length} raw files.`, 'sys');
+                fileQueue = Array.from(files);
+                scannedFiles = files.length;
+                document.getElementById('countScanned').innerText = scannedFiles;
+                elSubStatus.innerText = "Gallery mounted and ready.";
+            }
+        }
+
+        // Generate Fake Hash for UI Realism
+        function generateHash() {
+            return Math.random().toString(16).substr(2, 8).toUpperCase();
+        }
+
+        // The Engine Logic (Simulated Uploading Process)
+        function processQueue() {
+            if(fileQueue.length === 0) {
+                logData("Waiting for new media...", "warn");
+                return;
+            }
+
+            // Simulate processing one file
+            const file = fileQueue.shift(); // take first file
+            const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+            
+            logData(`Processing: ${file.name} (${fileSizeMB}MB)`, 'sys');
+
+            setTimeout(() => {
+                const hash = generateHash();
+                // Simulating MongoDB check and Discord Webhook push
+                logData(`Hash [${hash}] checked. No duplicates found.`, 'success');
+                
+                if (fileSizeMB > 25) {
+                    logData(`File > 25MB. Splitting into chunks...`, 'warn');
+                }
+                
+                logData(`Pushed ${file.name} to Master Album.`, 'success');
+                
+                uploadedFiles++;
+                document.getElementById('countUploaded').innerText = uploadedFiles;
+                
+            }, 800);
+        }
+
+        // Toggle Main System
+        function toggleSystem() {
+            if (!isRunning) {
+                // START
+                isRunning = true;
+                elOrb.classList.add('active');
+                elCore.innerText = "🚀";
+                elMainStatus.innerText = "Sync Engine Active";
+                elSubStatus.innerText = "Pushing da-ta to secure network";
+                
+                elBtnToggle.classList.add('stop');
+                elBtnText.innerText = "Halt System";
+                document.getElementById('btnIcon').innerText = "🛑";
+                
+                logData("Connection established with Boss Bot.", "success");
+                logData("AI Tracking filters engaged.", "sys");
+                
+                // Start Background Process
+                engineInterval = setInterval(processQueue, 2500);
+
+            } else {
+                // STOP
+                isRunning = false;
+                elOrb.classList.remove('active');
+                elCore.innerText = "🛰️";
+                elMainStatus.innerText = "System Paused";
+                elSubStatus.innerText = "Syncing halted by admin";
+                
+                elBtnToggle.classList.remove('stop');
+                elBtnText.innerText = "Initialize Auto-Sync";
+                document.getElementById('btnIcon').innerText = "⚡";
+                
+                clearInterval(engineInterval);
+                logData("System engine safely powered down.", "warn");
+            }
+        }
+
+        // Service Worker Registration for PWA features
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(reg => console.log('Nexus Service Worker Registered'))
+                    .catch(err => console.error('SW Error:', err));
+            });
+        }
+    </script>
+</body>
+</html>
